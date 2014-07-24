@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @id 				myshows.ru
 // @name 			myshows.ru
-// @version 		1.0.2
+// @version 		1.0.2.1
 // @description 	Добавляет ссылки на торрент и субтитры
 // @include 		http://myshows.ru/*
 // @match 			http://myshows.ru/*
@@ -13,9 +13,9 @@
 // ==/UserScript==
 
 param = '720p';
-var css  = GM_getResourceText('myshows-css');
-console.log(css);
-GM_addStyle(css);
+
+GM_addStyle(GM_getResourceText('myshows-css'));
+
 document.addEventListener('DOMNodeRemoved', show_icons, false);
 
 function show_icons(){

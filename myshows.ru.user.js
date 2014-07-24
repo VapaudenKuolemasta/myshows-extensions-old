@@ -1,8 +1,8 @@
-// ==UserScript==
+п»ї// ==UserScript==
 // @id 				myshows.ru
 // @name 			myshows.ru
 // @version 		1.0.2
-// @description 	Добавляет ссылки на торрент и субтитры
+// @description 	Р”РѕР±Р°РІР»СЏРµС‚ СЃСЃС‹Р»РєРё РЅР° С‚РѕСЂСЂРµРЅС‚ Рё СЃСѓР±С‚РёС‚СЂС‹
 // @include 		http://myshows.ru/*
 // @match 			http://myshows.ru/*
 // @resource 		myshows-css https://raw.githubusercontent.com/VapaudenKuolemasta/myshows.ru-userscript/master/myshows.ru.css

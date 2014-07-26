@@ -16,7 +16,10 @@ param = '720p';
 
 GM_addStyle(GM_getResourceText('myshows-css'));
 
-document.addEventListener('DOMNodeRemoved', show_icons, false);
+var icon = document.createElement('link');
+icon.setAttribute('type', 'image/x-icon');
+icon.setAttribute('rel', 'shortcut icon');
+icon.setAttribute('href', 'http://myshows.ru/shared/images/header/logo-tv.gif');
 
 function show_icons(){
 	var bss_seri = document.getElementsByClassName('bss_seri');
@@ -58,10 +61,14 @@ function show_icons(){
 	}
 }
 
-var icon = document.createElement('link');
-
-icon.setAttribute('type', 'image/x-icon');
-icon.setAttribute('rel', 'shortcut icon');
-icon.setAttribute('href', 'http://myshows.ru/shared/images/header/logo-tv.gif');
-
 document.getElementsByTagName('head')[0].appendChild(icon);
+
+document.addEventListener( 
+	'DOMNodeRemoved', 
+	function( e ){
+		if(e.originalTarget.className==''){
+			show_icons();
+		}
+	}, 
+	false 
+);

@@ -1,8 +1,8 @@
 ﻿// ==UserScript==
 // @id 				myshows.ru
 // @name 			myshows.ru
-// @version 		1.0.2.1
-// @description 	Добавляет ссылки на торрент и субтитры
+// @version 		1.0.4
+// @description 	Добавляет ссылки на торрент и субтитры. Добавляет фавикон.
 // @include 		http://myshows.ru/*
 // @match 			http://myshows.ru/*
 // @resource 		myshows-css https://raw.githubusercontent.com/VapaudenKuolemasta/myshows.ru-userscript/master/myshows.ru.css
@@ -63,10 +63,11 @@ function show_icons(){
 
 document.getElementsByTagName('head')[0].appendChild(icon);
 
+show_icons();
 document.addEventListener( 
 	'DOMNodeRemoved', 
 	function( e ){
-		if(e.originalTarget.className==''){
+		if(e.relatedNode.className=='') {
 			show_icons();
 		}
 	}, 

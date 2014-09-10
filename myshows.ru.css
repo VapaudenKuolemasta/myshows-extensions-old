@@ -1,6 +1,10 @@
 .bss_link {
-	width:100px !important;
+	width:120px !important;
 	padding: 0 0 0 0 !important;
+}
+
+.magnet img {
+	margin: 0 5px 2px 0;
 }
 
 .fv_icon  {

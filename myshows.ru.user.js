@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @id 				myshows.ru
 // @name 			myshows.ru
-// @version 		3.0
+// @version 		3.0.1
 // @description 	Добавляет ссылки на поиск торрента и субтитров, плюс прямую ссылку на магнет. Добавляет фавикон.
 // @include 		http://myshows.ru/*
 // @match 			http://myshows.ru/*
@@ -72,19 +72,19 @@ var magnet = {
 		for (i=0; i<count; i++) {
 			this.queue.push( main_link[i].getAttribute('href') );
 		}
-		this.getContent( this.queue.pop() );
+		this.getContent();
 	},
 	
 	// Рекурсивный метод отправляющий запрос
-	getContent:function( url ){
+	getContent:function(){
 		var _this = this;
 		setTimeout( function(){
 			GM_xmlhttpRequest({
 				method : "GET",
-				url : url,
+				url : _this.queue.pop(),
 				onload : function( x ){
 					_this.exchangeLinks( _this.parseContent( x ) );
-					if ( _this.queue.length >= 1 ) _this.getContent( _this.queue.pop() );
+					if ( _this.queue.length >= 1 ) _this.getContent();
 				}
 			});
 		},	0 );
@@ -92,7 +92,7 @@ var magnet = {
 	
 	// Заменяет лоадеры магнетами или черепом с косятми, если магнет не найден
 	exchangeLinks:function( answer ){
-		document.getElementsByClassName('magnet')[this.queue.length].innerHTML = 
+		document.getElementsByClassName('magnet')[this.queue.length+1].innerHTML = 
 			answer.length>2?
 			'<a href="'+answer+'" ><img src="https://thepiratebay.se/static/img/icon-magnet.gif" title="Скачать magnet с ThePirateBay"></a>':
 			'<img src="https://thepiratebay.se/static/img/trusted.png" title="Ничего не найдено на ThePirateBay">';

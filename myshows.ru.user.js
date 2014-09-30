@@ -13,6 +13,12 @@
 // @grant 			GM_xmlhttpRequest
 // ==/UserScript==
 
+// Сделать макет ридми
+// Обновлять раз в 10-15 минут (?)
+// Подписывать размер релиза во всплывающую подсказку
+// Убрать нафиг файл со стилями, лишний гемор
+// Заполнять магнеты сверху вниз
+
 GM_addStyle(GM_getResourceText('myshows-css'));
 
 var param = '720p';
@@ -83,26 +89,27 @@ var magnet = {
 				method : "GET",
 				url : _this.queue.pop(),
 				onload : function( x ){
-					_this.exchangeLinks( _this.parseContent( x ) );
-					if ( _this.queue.length >= 1 ) _this.getContent();
+					if( _this.exchangeLinks( _this.parseContent( x ), _this.queue.length ) ){
+						if ( _this.queue.length > 0 ) _this.getContent();
+					}
 				}
 			});
 		},	0 );
 	},
 	
 	// Заменяет лоадеры магнетами или черепом с косятми, если магнет не найден
-	exchangeLinks:function( answer ){
-		document.getElementsByClassName('magnet')[this.queue.length+1].innerHTML = 
+	exchangeLinks:function( answer, index ){
+		document.getElementsByClassName('magnet')[ index ].innerHTML = 
 			answer.length>2?
 			'<a href="'+answer+'" ><img src="https://thepiratebay.se/static/img/icon-magnet.gif" title="Скачать magnet с ThePirateBay"></a>':
 			'<img src="https://thepiratebay.se/static/img/trusted.png" title="Ничего не найдено на ThePirateBay">';
+		return true;
 	},
 	
 	// Тут распарсиваются данные, полученные запросом
 	parseContent:function( answer ){
 		var responseDiv = document.createElement('div');
 		responseDiv.innerHTML = answer.responseText;
-		
 		if( responseDiv.getElementsByClassName('detLink') != null){
 			var links = responseDiv.getElementsByClassName('detLink');
 			var descs = responseDiv.querySelectorAll('font.detDesc');
@@ -135,9 +142,10 @@ var magnet = {
 	toMiB:function( size ){
 		var regexp = /(\d+(\.\d+|))\s(GiB|KiB|MiB)/;
 		var res = regexp.exec( size );
+		if( res == null ) return 0;
 		switch ( res[3] ) {
-			case 'GiB': return ( +res[1] * 1000);
-			case 'KiB': return ( +res[1] * 0.001);
+			case 'GiB': return ( +res[1] * 1000 );
+			case 'KiB': return ( +res[1] * 0.001 );
 			case 'MiB': return ( +res[1] );
 			default: return 0;
 		}
@@ -157,7 +165,7 @@ magnet.addMagnet();
 document.addEventListener( 
 	'DOMNodeRemoved', 
 	function( e ){
-		if( e.relatedNode.className=='' ) {
+		if( e.target.classList[0].indexOf('rside') >= 0 ) {
 			addMainIcons();
 			magnet.addMagnet();
 		}

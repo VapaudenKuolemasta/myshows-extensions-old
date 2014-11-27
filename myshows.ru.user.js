@@ -1,7 +1,7 @@
 ﻿// ==UserScript==
 // @id 				myshows.me
 // @name 			myshows.me
-// @version 		4.0
+// @version 		4.0.1
 // @description 	Добавляет ссылки на поиск торрента и субтитров, плюс прямую ссылку на магнет.
 // @include 		http://myshows.me/*
 // @match 			http://myshows.me/*
@@ -22,7 +22,6 @@
 param = '720p';
 queue = {};
 threads = 5;
-current_threads = 0;
 
 function addMainIcons(){
 	var div_seasonBlockBody = document.querySelectorAll('.seasonBlockBody > table > tbody > tr');
@@ -30,18 +29,12 @@ function addMainIcons(){
 	for( i=0; i<count; i++ ){
 	
 		/* BOF Достаем название сериала */
-		var serial_name = div_seasonBlockBody[i].parentElement.parentElement.parentElement.parentElement.previousElementSibling;
-		
-		// Нужно на случай нескольких сезонов
-		while(serial_name.tagName != 'P'){ 
-			serial_name = serial_name.previousElementSibling;
-		} 
+		var tmp = div_seasonBlockBody[i].parentElement.parentElement.parentElement.parentElement.getAttribute('data-show-id');
+		var serial_name = document.getElementById('s'+tmp).children[0].children[1].textContent;
 		
 		// Если нет не русского названия
-		if( serial_name.innerHTML == '' ){ 
-			serial_name = serial_name.previousElementSibling.childNodes[0].childNodes[0].textContent;
-		}else{
-			serial_name = serial_name.childNodes[0].textContent;
+		if( serial_name == '' ){ 
+			serial_name = document.getElementById('s'+tmp).children[0].children[0].textContent;
 		}
 		/* EOF Достаем название сериала */
 		
@@ -55,7 +48,7 @@ function addMainIcons(){
 		var newTd = document.createElement('td');
 		newTd.className = 'torrentLinks';
 		newTd.innerHTML =
-		'<div class="buttonPopup _download red">'+
+		'<div class="buttonPopup _download _compact red">'+
             '<ul>'+
 				'<li>'+
 					'<a target="_blank" href="https://thepiratebay.se/search/'+serial_name+'+'+season_episode+'+'+param+'/0/3/0" rel="nofollow external">'+
@@ -97,12 +90,15 @@ function getMagnetPage( episode_id, episode_href ){
 			onload : function( msg ){
 				if( msg ){
 					var parsingResult = parseMagnetPage( msg );	
-					if( parsingResult !== 0 ){
-						var tmp = document.querySelector('tr[data-id="'+episode_id+'"] li.magnet a');
-						if( tmp != null ){
+					var tmp = document.querySelector('tr[data-id="'+episode_id+'"] li.magnet a');
+					if( tmp != null ){
+						if( parsingResult !== 0 ){ // Если нашел магнет
 							tmp.setAttribute('href', parsingResult.link );
 							tmp.childNodes[0].setAttribute('src','https://thepiratebay.se/static/img/icon-magnet.gif');
 							tmp.childNodes[1].textContent = '('+parsingResult.size+' MB) '+parsingResult.name;
+						}else{ // Если не нашел магнет
+							tmp.childNodes[0].setAttribute('src','https://thepiratebay.se/static/img/trusted.png');
+							tmp.childNodes[1].textContent = 'Магнет не найден.';
 						}
 					}
 				}

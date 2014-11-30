@@ -12,8 +12,6 @@
 // ==/UserScript==
 
 // Сделать макет ридми
-// Обновлять раз в 10-15 минут, не останавливать аякс совсем, просто запускать его периодически
-// Размер релиза форматировать типа 9 999.99
 
 (function myshows_extention(){
 	queue = {}; // Очередь для аяксов
@@ -39,7 +37,7 @@
 	
 	param = ls.getItem('param');
 	threads = ls.getItem('threads'); 
-	use_custom_css = ls.getItem('use_custom_css'); 
+	use_custom_css = +ls.getItem('use_custom_css'); 
 	custom_css = ls.getItem('custom_css'); 
 	engine_list = JSON.parse(localStorage.getItem('engine_list'));
 	/* End Дефолтные настройки для первого запуска */
@@ -47,14 +45,19 @@
 	/* Begin Интерфейс */
 	function drawSettingsInterface(){
 		var cfg_button = document.createElement('div');
-
-		var inner_html = '';
 		var ul_list = engine_list.ul_list;	
+
+		var inner_html = '<table width="100%" class="firmTable">';
 		for(var j = 0; j < ul_list.length; j++) {
 			var obj = ul_list[j];
 			inner_html += 
-			'<span><input data-rec-id="'+obj.id+'" type="checkbox" '+(use_custom_css?"checked":"")+'><span>'+obj.name+'</span><a class="red" href="#">X</a></span><br>';
+			'<tr data-rec-id="'+obj.id+'">'+
+				'<td><input class="cfg_select_engine" type="checkbox" '+(+obj.stat == 1?"checked":"")+'></td>'+
+				'<td><span>'+obj.name+'</span></td>'+
+				'<td><a class="red" href="#">X</a></td>'+
+			'</tr>';
 		}
+		inner_html += '</table>';
 		
 		cfg_button.setAttribute('id','cfg_button');
 		cfg_button.innerHTML = 
@@ -81,6 +84,28 @@
 			'</div>'+
 			
 			'<div id="cfg_ul_menu" class="cfg_tab">'+
+				'<a href="#" id="cfg_show_add_panel">Панель добавления поисковика</a>'+
+				'<div id="cfg_add_panel">'+
+					'<table width="100%">'+
+						'<tr>'+
+							'<td><span>Название</span></td>'+
+							'<td><input type="text" id="cfg_new_search_name"></td>'+
+						'</tr>'+
+						'<tr>'+
+							'<td><span>Иконка</span></td>'+
+							'<td><input type="text" id="cfg_new_search_icon"></td>'+
+						'</tr>'+
+						'<tr>'+
+							'<td><span>Текст</span></td>'+
+							'<td><input type="text" id="cfg_new_search_desc"></td>'+
+						'</tr>'+
+						'<tr>'+
+							'<td><span>Ссылка</span></td>'+
+							'<td><input type="text" id="cfg_new_search_href"></td>'+
+						'</tr>'+
+					'</table>'+
+					'<a href="#">Добавить поисковик</a>'+
+				'</div>'+
 				inner_html+
 			'</div>'+
 			
@@ -116,10 +141,39 @@
 			}
 		}
 		
+		// Подключить/отключить поисковик из списка
+		var cfg_select_engine = document.getElementsByClassName('cfg_select_engine');
+		for( i=0; i<cfg_select_engine.length; i++ ){
+			cfg_select_engine[i].onchange = function(){
+				for(j=0; j<engine_list.ul_list.length; j++){	
+					var obj = engine_list.ul_list[j];
+					if( obj.id == this.parentElement.parentElement.getAttribute('data-rec-id') ){
+						engine_list.ul_list[j].stat = this.checked?"1":"0";
+						ls.setItem('engine_list', JSON.stringify( engine_list ) );
+					}
+				}
+			}
+		}
+		
+		// Показываем/скрываем панель с добавлением
+		var show_pannel = document.getElementById('cfg_show_add_panel');
+		show_pannel.onclick = function() {
+			if( document.getElementById('cfg_add_panel').style.display == "block" ){
+				document.getElementById('cfg_add_panel').style.display="none";
+			}else{
+				document.getElementById('cfg_add_panel').style.display="block";
+			}
+			return false;
+		}
+		
+		// Обработчик добавления поисковика
+		
+		// Обработчик удаления поисковика
+		
 		// Подключаем или отключаем CSS
 		var chkbox = document.getElementById('cfg_checkbox');
 		chkbox.onchange = function() {
-			ls.setItem('use_custom_css', chkbox.checked?1:0 );
+			ls.setItem('use_custom_css', this.checked?1:0 );
 		}
 		
 		// Сохраняем CSS
@@ -163,8 +217,10 @@
 			var ul_list = engine_list.ul_list;	
 			for(var j = 0; j < ul_list.length; j++) {
 				var obj = ul_list[j];
-				inner_html += 
-				'<li><a target="_blank" href="'+str_replace(const_list, replace_list, obj.href)+'" rel="nofollow external"><img alt="img" class="fv_icon" src="'+obj.icon+'">'+str_replace(const_list, replace_list, obj.desc)+'</a></li>';
+				if( obj.stat == 1 ){
+					inner_html += 
+					'<li><a target="_blank" href="'+str_replace(const_list, replace_list, obj.href)+'" rel="nofollow external"><img alt="img" class="fv_icon" src="'+obj.icon+'">'+str_replace(const_list, replace_list, obj.desc)+'</a></li>';
+				}
 			}
 			
 			newTd.innerHTML =
@@ -296,11 +352,17 @@
 			// 'bottom:-118px;'+
 			'bottom:0px;'+
 			'position:fixed;'+
-			'width:350px;'+
+			'width:320px;'+
 			'height:325px;'+
 		'}'+
 		'#cfg_holder{'+
 			'padding:5px;'+
+		'}'+
+		'#cfg_add_panel{'+
+			'display:none;'+
+			'border: 2px solid #ccc;'+
+			'padding:5px;'+
+			'margin-top:5px;'+
 		'}'+
 		'#cfg_title{'+
 			'border-radius: 10px 0 0 0;'+

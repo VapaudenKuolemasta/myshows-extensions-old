@@ -45,19 +45,6 @@
 	/* Begin Интерфейс */
 	function drawSettingsInterface(){
 		var cfg_button = document.createElement('div');
-		var ul_list = engine_list.ul_list;	
-
-		var inner_html = '<table width="100%" class="firmTable">';
-		for(var j = 0; j < ul_list.length; j++) {
-			var obj = ul_list[j];
-			inner_html += 
-			'<tr data-rec-id="'+obj.id+'">'+
-				'<td><input class="cfg_select_engine" type="checkbox" '+(+obj.stat == 1?"checked":"")+'></td>'+
-				'<td><span>'+obj.name+'</span></td>'+
-				'<td><a class="red" href="#">X</a></td>'+
-			'</tr>';
-		}
-		inner_html += '</table>';
 		
 		cfg_button.setAttribute('id','cfg_button');
 		cfg_button.innerHTML = 
@@ -89,29 +76,38 @@
 					'<table width="100%">'+
 						'<tr>'+
 							'<td><span>Название</span></td>'+
-							'<td><input type="text" id="cfg_new_search_name"></td>'+
+							'<td><input type="text" id="cfg_new_search_name" class="cfg_add_engibe_input"></td>'+
 						'</tr>'+
 						'<tr>'+
 							'<td><span>Иконка</span></td>'+
-							'<td><input type="text" id="cfg_new_search_icon"></td>'+
+							'<td><input type="text" id="cfg_new_search_icon" class="cfg_add_engibe_input"></td>'+
 						'</tr>'+
 						'<tr>'+
 							'<td><span>Текст</span></td>'+
-							'<td><input type="text" id="cfg_new_search_desc"></td>'+
+							'<td><input type="text" id="cfg_new_search_desc" class="cfg_add_engibe_input"></td>'+
 						'</tr>'+
 						'<tr>'+
 							'<td><span>Ссылка</span></td>'+
-							'<td><input type="text" id="cfg_new_search_href"></td>'+
+							'<td><input type="text" id="cfg_new_search_href" class="cfg_add_engibe_input"></td>'+
 						'</tr>'+
 					'</table>'+
-					'<a href="#">Добавить поисковик</a>'+
+					'<a href="#" id="cfg_add_engine_butt">Добавить поисковик</a>'+
 				'</div>'+
-				inner_html+
+				'<div id="engine_select_list">'+
+					drawEngineSlectList()+
+				'</div>'+
 			'</div>'+
 			
 		'</div>'+
 		'';
 		document.body.appendChild(cfg_button);
+		
+		var cfg_add_engibe_input = document.getElementsByClassName("cfg_add_engibe_input");
+		for( i=0; i<cfg_add_engibe_input.length; i++ ){
+			cfg_add_engibe_input[i].onfocus = function () {
+				this.classList.remove('error_empty_field');
+			}
+		}
 		
 		// Обработчик параметра запросов
 		var input_param = document.querySelector('#cfg_settings input[name="param"]');
@@ -167,8 +163,56 @@
 		}
 		
 		// Обработчик добавления поисковика
+		var add_engine_butt = document.getElementById('cfg_add_engine_butt');
+		add_engine_butt.onclick = function() {
+			var new_id = +engine_list.last_id + 1;
+			
+			// Проверка на заполненность полей
+			var tmp_input_fields = document.getElementsByClassName('cfg_add_engibe_input');
+			for( j=0;j<tmp_input_fields.length;j++ ){
+				if( tmp_input_fields[j].value == '' ){
+					tmp_input_fields[j].classList.add('error_empty_field');
+				}
+			}
+		
+			// Если есть незаполненные поля, то не добавляем запись
+			if( document.getElementsByClassName('error_empty_field').length > 0 ) return false;
+			
+			// Формируем запись
+			var new_rec = {
+				id:new_id,
+				stat:1, 
+				name:document.getElementById('cfg_new_search_name').value,
+				icon:document.getElementById('cfg_new_search_icon').value,
+				desc:document.getElementById('cfg_new_search_desc').value,
+				href:document.getElementById('cfg_new_search_href').value
+			}
+			engine_list.ul_list.push( new_rec );
+			engine_list.last_id = new_id;
+			ls.setItem('engine_list', JSON.stringify( engine_list ) );
+			document.getElementById('cfg_add_panel').style.display="none";
+			document.getElementById('engine_select_list').innerHTML = drawEngineSlectList();
+			return false;
+		}
 		
 		// Обработчик удаления поисковика
+		var cfg_delete_engine = document.getElementsByClassName('cfg_delete_engine');
+		for( i=0; i<cfg_delete_engine.length; i++ ){
+			cfg_delete_engine[i].onclick = function() {
+				if( confirm('Удалить этот поисковик?') ){
+					for(j=0; j<engine_list.ul_list.length; j++){	
+						var obj = engine_list.ul_list[j];
+						if( obj.id == this.parentElement.parentElement.getAttribute('data-rec-id') ){
+							engine_list.ul_list.splice(j,1);
+							ls.setItem('engine_list', JSON.stringify( engine_list ) );
+							document.getElementById('engine_select_list').innerHTML = drawEngineSlectList();
+							break;
+						}
+					}
+				}
+				return false;
+			}
+		}
 		
 		// Подключаем или отключаем CSS
 		var chkbox = document.getElementById('cfg_checkbox');
@@ -318,6 +362,21 @@
 		return subject;
 	}
 	
+	function drawEngineSlectList(){
+		var ul_list = engine_list.ul_list;	
+		var inner_html = '<table width="100%" class="firmTable">';
+		for(var j = 0; j < ul_list.length; j++) {
+			var obj = ul_list[j];
+			inner_html += 
+			'<tr data-rec-id="'+obj.id+'">'+
+				'<td><input class="cfg_select_engine" type="checkbox" '+(+obj.stat == 1?"checked":"")+'></td>'+
+				'<td><span>'+obj.name+'</span></td>'+
+				'<td><a class="red cfg_delete_engine" href="#">X</a></td>'+
+			'</tr>';
+		}
+		return inner_html += '</table>';
+	}
+	
 	GM_addStyle(
 		'.fv_icon{'+
 			'width: 13px;'+
@@ -378,10 +437,14 @@
 		'#cfg_textarea{'+
 			'height:220px;'+
 		'}'+
+		'#cfg_ul_menu{'+
+			'overflow: auto;'+
+		'}'+
 		'#cfg_title input{'+
 			'width:auto !important;'+
 		'}'+
 		'.cfg_tab{'+
+			'height: 270px;'+
 			'border-left: 2px solid #ccc;'+
 			'border-right: 2px solid #ccc;'+
 			'border-bottom: 2px solid #ccc;'+
@@ -400,9 +463,10 @@
 			'border-bottom:0px;'+
 		'}'+
 		'.cfg_activ{'+
-			'width:100%;'+
-			'height:100%;'+
 			'display:block;'+
+		'}'+
+		'.error_empty_field{'+
+			'border: 1px solid red !important;'+
 		'}'+
 		''
 	);
